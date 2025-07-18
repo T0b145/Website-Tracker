@@ -2,6 +2,7 @@
 config.json
 site_data.json
 tracked_sites.json
+change_history.json
 
 # Log files
 *.log

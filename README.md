@@ -10,6 +10,7 @@ A Python script that monitors websites for changes and sends notifications via S
 - 📝 **Comprehensive Logging**: Detailed logs for debugging and monitoring
 - 🔒 **Secure Configuration**: Sensitive data kept separate from code
 - ⚡ **Fast & Efficient**: Optimized for performance with timeout handling
+- 📊 **Change History**: Track all changes with timestamps and diff summaries
 
 ## Setup
 
@@ -30,6 +31,7 @@ A Python script that monitors websites for changes and sends notifications via S
    - `signal_recipient`: Your phone number for receiving notifications
    - `tracked_sites_file`: Path to your tracked sites configuration
    - `site_data_file`: Path to store site data
+   - `history_file`: Path to store change history
    - `signal_api`: Signal API configuration
      - `base_url`: Your Signal API server URL
      - `sender`: Your registered Signal phone number
@@ -63,7 +65,7 @@ A Python script that monitors websites for changes and sends notifications via S
 
 ## Configuration
 
-The `config.json` and `tracked_sites.json` files contain sensitive information and are excluded from version control. Copy the example files and modify them with your settings.
+The `config.json`, `tracked_sites.json`, `site_data.json`, and `change_history.json` files contain sensitive information and are excluded from version control. Copy the example files and modify them with your settings.
 
 ### Signal API Configuration
 
@@ -80,6 +82,36 @@ Each tracked site can have:
   - If no selector is provided, the entire page content is monitored
   - Examples: `.content`, `main`, `#specific-id`
 
+## Change History
+
+The tracker automatically maintains a history of all changes detected:
+
+### History File Structure
+```json
+[
+  {
+    "timestamp": "2024-01-15T10:30:45.123456",
+    "url": "https://example.com",
+    "selector": ".content",
+    "old_content_length": 1500,
+    "new_content_length": 1550,
+    "diff_lines": ["- old line", "+ new line"],
+    "diff_summary": {
+      "added_lines": 5,
+      "removed_lines": 3,
+      "total_diff_lines": 8
+    }
+  }
+]
+```
+
+### History Features
+- **Timestamps**: ISO format timestamps for each change
+- **Content Lengths**: Track how content size changes over time
+- **Diff Summaries**: Quick statistics about what changed
+- **Automatic Trimming**: Keeps only the last 1000 changes to prevent large files
+- **Diff Storage**: Stores the first 50 diff lines for each change
+
 ## Logging
 
 The tracker creates detailed logs in `tracker.log` with timestamps and different log levels:
@@ -95,7 +127,8 @@ The tracker creates detailed logs in `tracker.log` with timestamps and different
 - `config.example.json`: Example configuration
 - `tracked_sites.json`: List of websites to monitor (not in version control)
 - `tracked_sites.example.json`: Example tracked sites configuration
-- `site_data.json`: Stored site data (auto-generated)
+- `site_data.json`: Stored site data (auto-generated, not in version control)
+- `change_history.json`: Change history (auto-generated, not in version control)
 - `tracker.log`: Log file (auto-generated)
 
 ## Contributing

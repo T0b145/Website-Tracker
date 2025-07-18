@@ -1,0 +1,17 @@
+[
+  {
+    "url": "https://example.com",
+    "selector": ".content-area"
+  },
+  {
+    "url": "https://another-example.com",
+    "selector": "main"
+  },
+  {
+    "url": "https://website-without-selector.com"
+  },
+  {
+    "url": "https://www.staatsballett-berlin.de/spielplan/stueck-detail/stid/schwanensee/155.html",
+    "selector": ".container.container-besetzung"
+  }
+] 

@@ -1,0 +1,13 @@
+{
+  "signal_recipient": "+1234567890",
+  "tracked_sites_file": "tracked_sites.json",
+  "site_data_file": "site_data.json",
+  "signal_api": {
+    "base_url": "http://your-signal-api-server",
+    "sender": "+1234567890",
+    "auth": {
+      "username": "your_username",
+      "password": "your_password"
+    }
+  }
+} 

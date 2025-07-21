@@ -58,7 +58,25 @@ A Python script that monitors websites for changes and sends notifications via S
    - `url`: The website URL to monitor
    - `selector`: (Optional) CSS selector to monitor specific content
 
-5. **Run the tracker:**
+## Quick Setup (Recommended)
+
+1. **Run the install script:**
+   ```bash
+   bash install.sh
+   ```
+   This will:
+   - Create a virtual environment (`venv`)
+   - Activate it
+   - Install all requirements
+   - Install Playwright browser binaries
+
+2. **Activate the virtual environment in every new terminal session:**
+   ```bash
+   source venv/bin/activate
+   ```
+   > **Note:** You must activate the venv each time you open a new terminal before running the tracker.
+
+3. **Run the tracker:**
    ```bash
    python tracker.py
    ```

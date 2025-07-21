@@ -6,6 +6,7 @@ from datetime import datetime
 
 from bs4 import BeautifulSoup
 import requests
+from playwright.sync_api import sync_playwright
 
 from signal_notify import send_text
 
@@ -105,25 +106,52 @@ def add_change_to_history(history, url, selector, old_content, new_content, diff
     
     return history
 
-def fetch_content(url, selector=None):
-    try:
-        resp = requests.get(url, timeout=30)
-        resp.raise_for_status()
-        soup = BeautifulSoup(resp.text, 'html.parser')
-        if selector:
-            el = soup.select_one(selector)
-            if not el:
-                logger.warning(f"Selector '{selector}' not found on {url}")
-                return ''
-            return el.get_text(separator='\n', strip=True)
-        else:
-            return soup.get_text(separator='\n', strip=True)
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Failed to fetch {url}: {e}")
-        raise
-    except Exception as e:
-        logger.error(f"Unexpected error fetching {url}: {e}")
-        raise
+def fetch_content(url, selector=None, use_playwright=False):
+    if use_playwright:
+        USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " \
+                     "AppleWebKit/537.36 (KHTML, like Gecko) " \
+                     "Chrome/115.0.0.0 Safari/537.36"
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            context = browser.new_context(
+                locale="de-DE",
+                user_agent=USER_AGENT,
+                viewport={"width": 1280, "height": 800},
+            )
+            page = context.new_page()
+            page.goto(url, timeout=30000)
+            content = ''
+            if selector:
+                try:
+                    page.wait_for_selector(selector, timeout=10000)
+                    el = page.locator(selector).first
+                    content = el.inner_text()
+                except Exception as e:
+                    logger.warning(f"Selector '{selector}' not found on {url} via Playwright: {e}")
+                    content = ''
+            else:
+                content = page.content()
+            browser.close()
+            return content
+    else:
+        try:
+            resp = requests.get(url, timeout=30)
+            resp.raise_for_status()
+            soup = BeautifulSoup(resp.text, 'html.parser')
+            if selector:
+                el = soup.select_one(selector)
+                if not el:
+                    logger.warning(f"Selector '{selector}' not found on {url}")
+                    return ''
+                return el.get_text(separator='\n', strip=True)
+            else:
+                return soup.get_text(separator='\n', strip=True)
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Failed to fetch {url}: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error fetching {url}: {e}")
+            raise
 
 def show_diff(old, new):
     old_lines = old.splitlines()
@@ -153,10 +181,11 @@ def main():
         selector = entry.get('selector')
         site_name = entry.get('name', url)
         receivers = entry.get('receivers', [])
+        use_playwright = entry.get('use_playwright', False)
         logger.info(f'Checking {site_name}...')
         
         try:
-            content = fetch_content(url, selector)
+            content = fetch_content(url, selector, use_playwright)
         except Exception as e:
             logger.error(f'  Error fetching: {e}')
             continue

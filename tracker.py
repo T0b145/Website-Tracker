@@ -140,11 +140,6 @@ def main():
     tracked_sites_file = config.get('tracked_sites_file', 'tracked_sites.json')
     site_data_file = config.get('site_data_file', 'site_data.json')
     history_file = config.get('history_file', 'change_history.json')
-    signal_recipient = config.get('signal_recipient')
-    
-    if not signal_recipient:
-        logger.error("signal_recipient not found in config.json")
-        exit(1)
     
     tracked_sites = load_tracked_sites(tracked_sites_file)
     site_data = load_site_data(site_data_file)
@@ -156,7 +151,9 @@ def main():
     for entry in tracked_sites:
         url = entry['url']
         selector = entry.get('selector')
-        logger.info(f'Checking {url} (selector: {selector})...')
+        site_name = entry.get('name', url)
+        receivers = entry.get('receivers', [])
+        logger.info(f'Checking {site_name}...')
         
         try:
             content = fetch_content(url, selector)
@@ -183,12 +180,13 @@ def main():
                 diff_text += '\n...diff truncated...'
                 
             # Send Signal notification
-            msg = f"Website changed: {url}\nSelector: {selector}\nDiff:\n{diff_text}"
-            try:
-                #send_text(signal_recipient, msg)
-                logger.info(f"Signal notification sent to {signal_recipient}")
-            except Exception as e:
-                logger.error(f"Failed to send Signal notification: {e}")
+            msg = f"🤖📢 Website changed:\n{site_name}\nDiff:\n{diff_text}"
+            for recipient in receivers:
+                try:
+                    send_text(recipient, msg)
+                    logger.info(f"Signal notification sent to {recipient}")
+                except Exception as e:
+                    logger.error(f"Failed to send Signal notification to {recipient}: {e}")
         else:
             logger.info('  No change.')
     

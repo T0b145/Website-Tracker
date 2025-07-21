@@ -61,6 +61,50 @@ def save_site_data(site_data_file, data):
     except Exception as e:
         logger.error(f"Failed to save site data: {e}")
 
+def load_change_history(history_file):
+    """Load change history from file"""
+    if not os.path.exists(history_file):
+        return []
+    try:
+        with open(history_file, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except json.JSONDecodeError:
+        logger.warning(f"Invalid JSON in '{history_file}', starting with empty history.")
+        return []
+
+def save_change_history(history_file, history):
+    """Save change history to file"""
+    try:
+        with open(history_file, 'w', encoding='utf-8') as f:
+            json.dump(history, f, indent=2, ensure_ascii=False)
+        logger.info(f"Change history saved to {history_file}")
+    except Exception as e:
+        logger.error(f"Failed to save change history: {e}")
+
+def add_change_to_history(history, url, selector, old_content, new_content, diff_lines):
+    """Add a change to the history"""
+    change_entry = {
+        "timestamp": datetime.now().isoformat(),
+        "url": url,
+        "selector": selector,
+        "old_content_length": len(old_content),
+        "new_content_length": len(new_content),
+        "diff_lines": diff_lines,
+        "diff_summary": {
+            "added_lines": len([line for line in diff_lines if line.startswith('+') and not line.startswith('+++')]),
+            "removed_lines": len([line for line in diff_lines if line.startswith('-') and not line.startswith('---')]),
+            "total_diff_lines": len(diff_lines)
+        }
+    }
+    history.append(change_entry)
+    
+    # Keep only last 1000 changes to prevent file from growing too large
+    if len(history) > 1000:
+        history = history[-1000:]
+        logger.info("Trimmed history to last 1000 changes")
+    
+    return history
+
 def fetch_content(url, selector=None):
     try:
         resp = requests.get(url, timeout=30)
@@ -95,14 +139,11 @@ def main():
     config = load_config()
     tracked_sites_file = config.get('tracked_sites_file', 'tracked_sites.json')
     site_data_file = config.get('site_data_file', 'site_data.json')
-    signal_recipient = config.get('signal_recipient')
-    
-    if not signal_recipient:
-        logger.error("signal_recipient not found in config.json")
-        exit(1)
+    history_file = config.get('history_file', 'change_history.json')
     
     tracked_sites = load_tracked_sites(tracked_sites_file)
     site_data = load_site_data(site_data_file)
+    change_history = load_change_history(history_file)
     changed = False
     
     logger.info(f"Checking {len(tracked_sites)} tracked sites...")
@@ -110,7 +151,9 @@ def main():
     for entry in tracked_sites:
         url = entry['url']
         selector = entry.get('selector')
-        logger.info(f'Checking {url} (selector: {selector})...')
+        site_name = entry.get('name', url)
+        receivers = entry.get('receivers', [])
+        logger.info(f'Checking {site_name}...')
         
         try:
             content = fetch_content(url, selector)
@@ -127,6 +170,9 @@ def main():
             site_data[key] = content
             changed = True
             
+            # Add to change history
+            change_history = add_change_to_history(change_history, url, selector, prev_content, content, diff_lines)
+            
             # Prepare diff for Signal message
             max_lines = 30
             diff_text = '\n'.join(diff_lines[:max_lines])
@@ -134,18 +180,20 @@ def main():
                 diff_text += '\n...diff truncated...'
                 
             # Send Signal notification
-            msg = f"Website changed: {url}\nSelector: {selector}\nDiff:\n{diff_text}"
-            try:
-                #send_text(signal_recipient, msg)
-                logger.info(f"Signal notification sent to {signal_recipient}")
-            except Exception as e:
-                logger.error(f"Failed to send Signal notification: {e}")
+            msg = f"🤖📢 Website changed:\n{site_name}\nDiff:\n{diff_text}"
+            for recipient in receivers:
+                try:
+                    send_text(recipient, msg)
+                    logger.info(f"Signal notification sent to {recipient}")
+                except Exception as e:
+                    logger.error(f"Failed to send Signal notification to {recipient}: {e}")
         else:
-            logger.info('No change.')
+            logger.info('  No change.')
     
     if changed:
         save_site_data(site_data_file, site_data)
-        logger.info('Site data updated.')
+        save_change_history(history_file, change_history)
+        logger.info('Site data and change history updated.')
     else:
         logger.info('No changes detected. Site data not updated.')
     

@@ -1,17 +1,14 @@
 [
   {
-    "url": "https://example.com",
-    "selector": ".content-area"
+    "name": "Example Site Name",
+    "url": "https://example.com/page",
+    "selector": ".example-selector",
+    "receivers": ["+491234567890", "+491112223334"]
   },
   {
-    "url": "https://another-example.com",
-    "selector": "main"
-  },
-  {
-    "url": "https://website-without-selector.com"
-  },
-  {
-    "url": "https://www.staatsballett-berlin.de/spielplan/stueck-detail/stid/schwanensee/155.html",
-    "selector": ".container.container-besetzung"
+    "name": "Example Site Name 2",
+    "url": "https://example2.com/page",
+    "selector": ".example-selector",
+    "receivers": ["+491234567890", "+491112223334"]
   }
 ] 

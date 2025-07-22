@@ -3,11 +3,11 @@ config.json
 site_data.json
 tracked_sites.json
 change_history.json
-cron.log
 
 # Log files
 *.log
 tracker.log
+cron.log
 
 # Python cache files
 __pycache__/

@@ -81,6 +81,24 @@ A Python script that monitors websites for changes and sends notifications via S
    python tracker.py
    ```
 
+## Web UI (Optional)
+
+This project includes a web interface to manage tracked sites and view change history.
+
+### Running the Web UI
+
+1.  **Install Flask**: If you haven't already, install the necessary dependency:
+    ```bash
+    pip install Flask
+    ```
+
+2.  **Run the server**:
+    ```bash
+    python web/server.py
+    ```
+
+3.  **Open in your browser**: Navigate to `http://127.0.0.1:5000` to use the web interface.
+
 ## Configuration
 
 The `config.json`, `tracked_sites.json`, `site_data.json`, and `change_history.json` files contain sensitive information and are excluded from version control. Copy the example files and modify them with your settings.

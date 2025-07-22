@@ -1,5 +1,6 @@
 [
   {
+    "id": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
     "name": "Example Site Name",
     "url": "https://example.com/page",
     "selector": ".example-selector",
@@ -7,6 +8,7 @@
     "use_playwright": false
   },
   {
+    "id": "b2c3d4e5-f6a7-8901-2345-67890abcdef0",
     "name": "Example Site Name 2",
     "url": "https://example2.com/page",
     "selector": ".example-selector",

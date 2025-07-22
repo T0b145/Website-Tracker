@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Website Tracker</h1>
+        <nav>
+            <button id="sites-view-btn" class="active">Tracked Sites</button>
+            <button id="history-view-btn">History</button>
+        </nav>
+    </header>
+
+    <main>
+        <div id="sites-view">
+            <div id="sites-list"></div>
+            <button id="add-site-btn" class="fab" title="Add New Site">+</button>
+        </div>
+
+        <div id="history-view" class="hidden">
+            <h2 id="history-title">History</h2>
+            <button id="back-to-sites-btn" class="hidden">Back to Sites</button>
+            <div id="history-list"></div>
+        </div>
+    </main>
+
+    <!-- Modal for Add/Edit Form -->
+    <div id="site-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2 id="modal-title">Add New Site</h2>
+            <form id="site-form">
+                <input type="hidden" id="site-id">
+                <label for="name">Name:</label>
+                <input type="text" id="name" required>
+                <label for="url">URL:</label>
+                <input type="url" id="url" required>
+                <label for="selector">CSS Selector:</label>
+                <input type="text" id="selector">
+                <label for="receivers">Receivers (comma-separated):</label>
+                <input type="text" id="receivers">
+                <div class="checkbox-container">
+                    <input type="checkbox" id="use_playwright">
+                    <label for="use_playwright">Use Playwright</label>
+                </div>
+                <button type="submit">Save</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal for Diff View -->
+    <div id="diff-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Change Details</h2>
+            <div id="split-diff-container"></div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html> 

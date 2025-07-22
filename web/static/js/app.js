@@ -188,28 +188,71 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const endpoint = url ? `/history?url=${encodeURIComponent(url)}` : '/history';
             const history = await fetchAPI(endpoint);
-            historyList.innerHTML = history.length ? history.map(entry => `
-                <div class="card">
-                    <h3>${entry.url}</h3>
-                    <p><strong>Timestamp:</strong> ${new Date(entry.timestamp).toLocaleString()}</p>
-                    <p><strong>Selector:</strong> ${entry.selector || 'N/A'}</p>
-                    <div class="card-actions">
-                        <button class="view-diff-btn" data-diff='${JSON.stringify(entry.diff_lines)}'>View Diff</button>
+            historyList.innerHTML = history.length ? history.map(entry => {
+                // Render the split diff for each entry
+                const diffHtml = renderSplitDiffHtml(entry.diff_lines);
+                return `
+                    <div class="card">
+                        <h3>${entry.url}</h3>
+                        <p><strong>Timestamp:</strong> ${new Date(entry.timestamp).toLocaleString()}</p>
+                        <p><strong>Selector:</strong> ${entry.selector || 'N/A'}</p>
+                        <div class="split-diff-history">${diffHtml}</div>
                     </div>
-                </div>
-            `).join('') : '<p>No history yet.</p>';
+                `;
+            }).join('') : '<p>No history yet.</p>';
         } catch (error) {
             historyList.innerHTML = `<p class="error">${error.message}</p>`;
         }
     };
 
-    historyList.addEventListener('click', (e) => {
-        if (e.target.classList.contains('view-diff-btn')) {
-            const diffLines = JSON.parse(e.target.dataset.diff);
-            document.getElementById('diff-content').textContent = diffLines.join('\n');
-            showModal(diffModal);
+    // --- Split Diff Rendering for History List ---
+    function renderSplitDiffHtml(diffLines) {
+        // Parse the diff into old and new lines
+        let oldLines = [];
+        let newLines = [];
+        let i = 0;
+        while (i < diffLines.length) {
+            const line = diffLines[i];
+            if (line.startsWith('@@')) {
+                i++;
+                continue;
+            }
+            if (line.startsWith('-')) {
+                oldLines.push({ text: line.slice(1), type: 'del' });
+                i++;
+            } else if (line.startsWith('+')) {
+                newLines.push({ text: line.slice(1), type: 'add' });
+                i++;
+            } else if (line.startsWith(' ')) {
+                oldLines.push({ text: line.slice(1), type: 'unchanged' });
+                newLines.push({ text: line.slice(1), type: 'unchanged' });
+                i++;
+            } else {
+                i++;
+            }
         }
-    });
+        let maxLen = Math.max(oldLines.length, newLines.length);
+        while (oldLines.length < maxLen) oldLines.push({ text: '', type: 'empty' });
+        while (newLines.length < maxLen) newLines.push({ text: '', type: 'empty' });
+        // Build HTML for split diff
+        let html = '<div class="split-diff-container" style="display:flex;gap:1rem;">';
+        html += '<div class="diff-column"><div class="diff-header">Old</div>';
+        for (let j = 0; j < maxLen; j++) {
+            html += `<div class="diff-line diff-${oldLines[j].type || 'empty'}">${escapeHtml(oldLines[j].text)}</div>`;
+        }
+        html += '</div>';
+        html += '<div class="diff-column"><div class="diff-header">New</div>';
+        for (let j = 0; j < maxLen; j++) {
+            html += `<div class="diff-line diff-${newLines[j].type || 'empty'}">${escapeHtml(newLines[j].text)}</div>`;
+        }
+        html += '</div></div>';
+        return html;
+    }
+    function escapeHtml(text) {
+        return text.replace(/[&<>"']/g, function (c) {
+            return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+        });
+    }
 
     // Initial load
     loadSites();

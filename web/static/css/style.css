@@ -196,4 +196,51 @@ main {
 /* Utility Classes */
 .hidden {
     display: none;
+}
+
+/* Split Diff Styles */
+#split-diff-container {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    margin-top: 1rem;
+    font-family: 'Fira Mono', 'Consolas', 'Menlo', monospace;
+    font-size: 0.95rem;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.diff-column {
+    flex: 1;
+    background: #f8f9fa;
+    border-radius: 5px;
+    padding: 0.5rem;
+    min-width: 0;
+}
+
+.diff-header {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+.diff-line {
+    white-space: pre-wrap;
+    padding: 0.1rem 0.5rem;
+    border-radius: 3px;
+}
+
+.diff-add {
+    background-color: #e6ffed;
+    color: #22863a;
+}
+
+.diff-del {
+    background-color: #ffeef0;
+    color: #b31d28;
+}
+
+.diff-unchanged {
+    background-color: transparent;
+    color: #24292e;
 } 
